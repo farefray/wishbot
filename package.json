@@ -1,0 +1,13 @@
+{
+  "name": "wishbot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/farefray/wishbot.git",
+  "author": "Maximf <maksym.fedan@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "iconv": "^2.3.0",
+    "node-telegram-bot-api": "^0.29.0"
+  }
+}
