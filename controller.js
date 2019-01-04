@@ -1,39 +1,26 @@
 const helpers = require('./helpers');
 const config = require('./modules');
 
+const selfName = "желание";
 const Controller = () => ({
-    init(me) {
-        console.log('Hello! My name is %s!', me.first_name);
-        console.log('My id is %s.', me.id);
-        console.log('And my username is @%s.', me.username);
-    },
+    middleware(message) {
+        let { text: messageText } = message;
 
-    on(eventName, ...args) {
-        this[eventName](...args);
-    },
+        let isAppeal = (messageText.toLowerCase().indexOf(selfName.toLowerCase()) !== 0);
 
-    text(msg) {
-        var { chat, text} = msg;
-        let messageText = text;
-        let messageChatId = chat && chat.id;
-
-        var active = true;
-        if (config.name.length && messageText.toLowerCase().indexOf(config.name.toLowerCase()) !== 0) {
-            active = false;
-        }
-
-        var actioned = false;
+        let actioned = false;
+        let resultResponse = "";
         config.logic.reverse().forEach(function (item, i) {
-            if ((item.canIgnoreName || active) && !actioned) {
+            if ((item.canIgnoreName || isAppeal) && !actioned) {
                 if (messageText.toLowerCase().indexOf(item.word.toLowerCase()) !== -1) {
                     actioned = true;
                     if (helpers.isFunction(item.action)) {
-                        var result = item.action(messageChatId, messageText);
+                        let result = item.action(messageChatId, messageText);
                         if (result && result.length) {
-                            bot.sendMessage(messageChatId, result);
+                            resultResponse = result;
                         }
                     } else {
-                        bot.sendMessage(messageChatId, item.action);
+                        resultResponse = item.action;
                     }
 
                     return true;
@@ -41,31 +28,31 @@ const Controller = () => ({
             }
         });
 
-        if (active) {
+        if (isAppeal) {
             if (!actioned) {
                 if (messageText.endsWith('?')) {
-                    var rand_no = getRandomInt(1, 3);
+                    var rand_no = helpers.getRandomInt(1, 3);
                     switch (rand_no) {
                         case 1: {
-                            bot.sendMessage(messageChatId, "Да");
+                            resultResponse = "Да";
                             break;
                         }
                         case 2: {
-                            bot.sendMessage(messageChatId, "Нет");
+                            resultResponse = "Нет";
                             break;
                         }
                         case 3: {
-                            bot.sendMessage(messageChatId, "Не знаю");
+                            resultResponse = "Не знаю";
                             break;
                         }
                     }
                 }
             }
-        } else {
-            if (messageText.endsWith('!') && Math.random() < .35) {
-                bot.sendMessage(messageChatId, "На минуточку!");
-            }
+        } else if (messageText.endsWith('!') && Math.random() < .35) {
+            resultResponse = "На минуточку!";
         }
+
+        return Promise.resolve(resultResponse);
     }
 });
 
