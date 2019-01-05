@@ -13,58 +13,6 @@ var config = {
     "name": "желание",
     "logic": [
         {
-            "word": "привет",
-            "action": "Здравствуй"
-        },
-        {
-            "canIgnoreName": true,
-            "word": "шути",
-            "action": function () {
-                var url = 'http://poetory.ru/content/list?sort=likes&page=' + [Math.floor(Math.random() * 15)] + '&per-page=30';
-                request({ url: url, encoding: null }, function (error, response, body) {
-                    if (!error) {
-                        /*body = new Buffer(body, 'binary');
-                        conv = new Iconv('windows-1251', 'utf8');
-                        body = conv.convert(body).toString();*/
-
-                        var $ = cheerio.load(body, { decodeEntities: false }),
-                            joke = $(".item-text");
-
-                        var html_joke = $(".item-text").eq(Math.floor(Math.random() * joke.length)).html();
-                        if (html_joke && html_joke.length) {
-                            html_joke = html_joke.replace(/<br\s*\/?>/mg, "\n").replace(/&(lt|gt|quot);/g, function (m, p) {
-                                return (p == "lt") ? "<" : (p == "gt") ? ">" : "'";
-                            });
-                        } else {
-                            html_joke = 'Произошла ошибка';
-                        }
-
-                        return html_joke;
-                    } else {
-
-                        return "Произошла ошибка: " + error
-                    }
-                });
-                //return "Нет.";
-            }
-        },
-        {
-            "word": "погода",
-            "action": function () {
-                request("http://www.wunderground.com/cgi-bin/findweather/getForecast?&query=47.887403899999995,33.3879114", function (error, response, body) {
-                    if (!error) {
-                        var $ = cheerio.load(body),
-                            temperature = $("[data-variable='temperature'] .wx-value").html(),
-                            feels = $("[data-variable='feelslike'] .wx-value").html();
-
-                        return "Текущая температура " + temperature + " °C, по ощущениям " + feels + " °C";
-                    } else {
-                        return "Произошла ошибка: " + error;
-                    }
-                });
-            }
-        },
-        {
             "word": "мудрость",
             "action": function () {
                 var num_quotes = 3;

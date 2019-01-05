@@ -7,7 +7,7 @@ const Controller = () => ({
     command(ctx) {
         let activeModule = null;
         allModules.commandModules.every(function(element, index) {
-            if (element.active(ctx)) {
+            if (element.canProcess(ctx)) {
                 activeModule = element;
                 return false; // funny way for break in foreach
             }
@@ -24,7 +24,7 @@ const Controller = () => ({
     middleware(ctx) {
         let activeModule = null;
         allModules.textModules.every(function(element, index) {
-            if (element.active(ctx)) {
+            if (element.canProcess(ctx)) {
                 activeModule = element;
                 return false; // funny way for break in foreach
             }

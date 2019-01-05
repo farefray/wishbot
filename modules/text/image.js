@@ -2,7 +2,7 @@ const request = require("request"),
     cheerio = require("cheerio");
 
 module.exports = {
-    active: function (ctx) {
+    canProcess: function (ctx) {
         let regex = RegExp('покажи', 'gmi');
         return (regex.test(ctx.message.text));
     },

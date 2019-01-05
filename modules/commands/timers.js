@@ -79,21 +79,26 @@ module.exports = {
         // create timer command
         var label = msg.substring(match[0].length).trim() || ""
         var time = parseInt(match[0].substring(1));
-        time = time * 60 * 1000
+        if (time > 0 && time <= 15) {
+            time = time * 60 * 1000
 
-        var timers = ctx.session.timers || []
-        var now = Date.now()
-        var end = now + time
+            var timers = ctx.session.timers || []
+            var now = Date.now()
+            var end = now + time
 
-        timers.push({ time: time, label: label, created: now, end: end, invalidated: false })
-        ctx.session.timers = timers
+            ctx.reply('Таймер запущен.')
+            timers.push({ time: time, label: label, created: now, end: end, invalidated: false })
+            ctx.session.timers = timers
 
-        var sessionKey = getSessionKey(ctx);
+            var sessionKey = getSessionKey(ctx);
 
-        if (m_activeContexts[sessionKey] == null) {
-            m_activeContexts[sessionKey] = setInterval(function () {
-                intervalHandler(ctx);
-            }, 1000)
+            if (m_activeContexts[sessionKey] == null) {
+                m_activeContexts[sessionKey] = setInterval(function () {
+                    intervalHandler(ctx);
+                }, 5000)
+            }
+        } else {
+            ctx.reply('Слишком длинный, you know, sorry.')
         }
     }
 }
