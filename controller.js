@@ -1,10 +1,49 @@
 const helpers = require('./helpers');
-const config = require('./modules');
+const config = require('./modules/old');
+const allModules = require('./modules');
 
 const selfName = "желание";
 const Controller = () => ({
-    middleware(message) {
-        let { text: messageText } = message;
+    command(ctx) {
+        let activeModule = null;
+        allModules.commandModules.every(function(element, index) {
+            if (element.active(ctx)) {
+                activeModule = element;
+                return false; // funny way for break in foreach
+            }
+
+            return true;
+        });
+
+        if (activeModule) {
+            return Promise.resolve(activeModule.process(ctx));
+        }
+        
+        return Promise.resolve();
+    },
+    middleware(ctx) {
+        let activeModule = null;
+        allModules.textModules.every(function(element, index) {
+            if (element.active(ctx)) {
+                activeModule = element;
+                return false; // funny way for break in foreach
+            }
+
+            return true;
+        });
+
+        if (activeModule) {
+            return Promise.resolve(activeModule.process(ctx));
+        }
+        
+        return Promise.resolve();
+    }
+});
+
+module.exports = Controller();
+
+/*
+let { text: messageText } = ctx.message;
 
         let isAppeal = (messageText.toLowerCase().indexOf(selfName.toLowerCase()) !== 0);
 
@@ -15,7 +54,7 @@ const Controller = () => ({
                 if (messageText.toLowerCase().indexOf(item.word.toLowerCase()) !== -1) {
                     actioned = true;
                     if (helpers.isFunction(item.action)) {
-                        let result = item.action(messageChatId, messageText);
+                        let result = item.action(messageText);
                         if (result && result.length) {
                             resultResponse = result;
                         }
@@ -53,7 +92,4 @@ const Controller = () => ({
         }
 
         return Promise.resolve(resultResponse);
-    }
-});
-
-module.exports = Controller();
+*/

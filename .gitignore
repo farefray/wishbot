@@ -64,3 +64,5 @@ data
 
 # Typings definitions
 typings
+
+\.env
