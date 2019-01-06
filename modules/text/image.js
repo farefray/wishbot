@@ -71,6 +71,7 @@ module.exports = {
             if (random === undefined || random['url'] === undefined) {
                 ctx.reply("Я не нашел ничего подходящего.");
             } else {
+                console.log(random['url'])
                 ctx.replyWithPhoto(random['url'], {
                     caption: 'Вот' + txt,
                     parse_mode: 'Markdown'
