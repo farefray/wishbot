@@ -1,1 +1,1 @@
-worker: node wishbot.js
+worker: node index.js

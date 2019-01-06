@@ -69,11 +69,14 @@ const intervalHandler = (ctx) => {
     }
 }
 
-module.exports = {
-    active: function (ctx) {
-        return (/^\/\d{1,5}/.test(ctx.message.text));
-    },
-    process: function (ctx) {
+module.exports = function () {
+    this.moduleName = "timers";
+
+    this.phrases = [
+        "таймер"
+    ];
+
+    this.run = function (ctx) {
         let msg = ctx.message.text;
         var match = msg.match(/^\/\d{1,5}/);
         // create timer command
@@ -101,4 +104,21 @@ module.exports = {
             ctx.reply('Слишком длинный, you know, sorry.')
         }
     }
+
+    return this;
 }
+
+
+/*
+
+bot.command('stop', (ctx) => {
+    stopTimers(ctx)
+    return ctx.reply('Cleared all timers.')
+})
+
+bot.command('cancel', (ctx) => {
+    stopTimers(ctx)
+    return ctx.reply('Cleared all timers.')
+})
+
+*/

@@ -3,17 +3,21 @@ const glob = require('glob'),
     path = require('path');
 
 let commandModules = []
-    textModules = [];
+    textModules = {};
 
 glob.sync('./modules/commands/*.js').forEach(function (file) {
     commandModules.push(require(path.resolve(file)));
 });
 
 glob.sync('./modules/text/*.js').forEach(function (file) {
-    textModules.push(require(path.resolve(file)));
+    let moduleName = (file.replace(/^.*[\\\/]/, '')).replace('.js', '');
+    textModules[moduleName] = require(path.resolve(file));
 });
 
-module.exports = {
-    commandModules,
-    textModules
-};
+var modules = {
+    commandModules: commandModules,
+    textModules: textModules
+}
+
+console.log(modules);
+module.exports = modules;
