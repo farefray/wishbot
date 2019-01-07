@@ -25,12 +25,17 @@ bot.use((ctx, next) => {
         ctx.session = {}
         return ctx.reply('session wiped').then(() => next(ctx))
     }
-    
-    let appResult = app.ai(ctx.message.text);
-    if (appResult.moduleName) {
-        app.process(appResult.moduleName, ctx).then(() => {
+
+    let isAppeal = app.isAppeal(ctx.message.text);
+    if (isAppeal) {
+        let appResult = app.ai(ctx.message.text);
+        if (appResult.moduleName) {
+            app.process(appResult.moduleName, ctx).then(() => {
+                return next(ctx);
+            });
+        } else {
             return next(ctx);
-        });
+        }
     } else {
         return next(ctx);
     }

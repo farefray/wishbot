@@ -18,6 +18,11 @@ var App = /** @class */ (function () {
         return instance || new App();
     };
 
+    App.prototype.isAppeal = function (text) {
+        const lowText = text.toLowerCase();
+        return (lowText.indexOf('желание') !== -1 || lowText.indexOf('bot') !== -1 || lowText.indexOf('бот') !== -1);
+    };
+
     App.prototype.ai = function (input) {
         let highestScore = 0;
         let highestModule = "";
