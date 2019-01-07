@@ -26,11 +26,11 @@ bot.use((ctx, next) => {
         return ctx.reply('session wiped').then(() => next(ctx))
     }
 
-    let isAppeal = app.isAppeal(ctx.message.text);
-    if (isAppeal) {
-        let appResult = app.ai(ctx.message.text);
+    let appealResult = app.getAppeal(ctx.message.text);
+    if (appealResult.is) {
+        let appResult = app.ai(ctx.message.text.replace(appealResult.appeal, ''));
         if (appResult.moduleName) {
-            app.process(appResult.moduleName, ctx).then(() => {
+            app.process(appResult, ctx).then(() => {
                 return next(ctx);
             });
         } else {

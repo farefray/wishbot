@@ -2,6 +2,8 @@ const natural = require('natural');
 
 const allModules = require('./modules');
 
+const appeals = ['желание', 'бот', 'bot'];
+
 var App = /** @class */ (function () {
     "use strict";
     var instance = null;
@@ -18,23 +20,43 @@ var App = /** @class */ (function () {
         return instance || new App();
     };
 
-    App.prototype.isAppeal = function (text) {
+    App.prototype.getAppeal = function (text) {
         const lowText = text.toLowerCase();
-        return (lowText.indexOf('желание') !== -1 || lowText.indexOf('bot') !== -1 || lowText.indexOf('бот') !== -1);
+        let appealResult = {
+            is: false,
+            appeal: ''
+        };
+
+        appeals.every(function(element) {
+            if (lowText.indexOf(element) !== -1) {
+                appealResult.is = true;
+                appealResult.appeal = element;
+                return false; // funny way for break in foreach
+            }
+
+            return true;
+        });
+
+        return appealResult;
     };
 
     App.prototype.ai = function (input) {
+        var tokenizer = new natural.WordTokenizer();
+        input = tokenizer.tokenize(input).join(' ').trim();
+
         let highestScore = 0;
         let highestModule = "";
+        let highestPhrase = "";
         for (let value of this.modules.values()) {
             let languageModule = value();
             if (languageModule) {
                 for (let phraseIndex in languageModule.phrases) {
-                    let element = languageModule.phrases[phraseIndex];
-                    let distance = natural.JaroWinklerDistance(element, input);
+                    let modulePhrase = languageModule.phrases[phraseIndex];
+                    let distance = natural.JaroWinklerDistance(modulePhrase, input);
                     if (distance > highestScore) {
                         highestScore = distance;
                         highestModule = languageModule.moduleName;
+                        highestPhrase = modulePhrase;
                     }
                 }
             }
@@ -42,15 +64,20 @@ var App = /** @class */ (function () {
 
         let response = {
             moduleName: null,
-            likeness: 0
+            likeness: 0,
+            highestPhrase: '',
+            usersInput: input
         };
 
         try {
             console.log('Highest score: ' + highestScore);
             console.log('ModuleName: ' + moduleName);
+            console.log('HighestPhrase: ' + highestPhrase);
+            console.log('Users input: ' + input)
             if (highestScore >= 0.7) {
                 response.moduleName = highestModule;
                 response.likeness = Math.round(highestScore * 1000) / 1000;
+                response.highestPhrase = highestPhrase;
             }
 
             return response;
@@ -60,12 +87,12 @@ var App = /** @class */ (function () {
         }
     };
 
-    App.prototype.process = function (moduleName, ctx) {
-        console.log('Processing module - ' + moduleName);
-        if (allModules.textModules[moduleName]) {
-            let requiredModule = allModules.textModules[moduleName]();
+    App.prototype.process = function (moduleConf, ctx) {
+        console.log('Processing module - ' + moduleConf.moduleName);
+        if (allModules.textModules[moduleConf.moduleName]) {
+            let requiredModule = allModules.textModules[moduleConf.moduleName]();
             // this one seems like horrible wrong. requiredModule contains all the modules itself....
-            return requiredModule.run(ctx);
+            return requiredModule.run(ctx, moduleConf);
         }
         return Promise.reject();
     };
