@@ -1,7 +1,6 @@
-const request = require("request"),
-    cheerio = require("cheerio");
-
-const natural = require('natural');
+const request = require("request");
+const cheerio = require("cheerio");
+const NaturalHelper = require('../helpers/natural');
 
 module.exports = function () {
     this.moduleName = "image";
@@ -15,24 +14,16 @@ module.exports = function () {
 
     this.run = function (ctx, moduleConf) {
         return new Promise((resolve, reject) => {
-            // lets find what we gonna search
-            const ourPhrase = moduleConf.highestPhrase;
-            let usersInput = moduleConf.usersInput;
-            let distancedMessage = natural.LevenshteinDistance(ourPhrase, usersInput, {search: true});
-            if (distancedMessage.substring) {
-                usersInput = usersInput.replace(distancedMessage.substring, "");
-            }
-
-            usersInput = usersInput.trim();
-            console.log('Searching for ' + usersInput);
-            var uri = 'https://www.google.com.ua/search?q=' + encodeURIComponent(usersInput) + '&source=lnms&tbm=isch&sa=X&ved=0ahUKEwiQm5ny3b7QAhVJkCwKHTuCDO4Q_AUICCgB';
+            const stem = NaturalHelper.extractStem(moduleConf.usersInput, moduleConf.highestPhrase);
+            console.log('Searching for ' + stem);
+            var uri = 'https://www.google.com.ua/search?q=' + encodeURIComponent(stem) + '&source=lnms&tbm=isch&sa=X&ved=0ahUKEwiQm5ny3b7QAhVJkCwKHTuCDO4Q_AUICCgB';
             request({
                 uri: uri,
                 method: 'GET',
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
                     'authority': 'www.google.com.ua',
-                    'path': '/search?q=' + encodeURIComponent(usersInput) + '&oq=' + encodeURIComponent(usersInput) + '&aqs=chrome..69i57j0l5.863j0j8&sourceid=chrome&es_sm=93&ie=UTF-8',
+                    'path': '/search?q=' + encodeURIComponent(stem) + '&oq=' + encodeURIComponent(stem) + '&aqs=chrome..69i57j0l5.863j0j8&sourceid=chrome&es_sm=93&ie=UTF-8',
                     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                     'cache-control': 'no-cache',
                     'cookie': 'SID=pwQ9LtS7qs82WclLKcqGluDwntiGWQzabwlCrE6hVsKIy7gYjA8NiSImlVlF18-xwxx1ag.; HSID=AiHDdo5fCSN8Pbf2h; SSID=A77ahQkTPNmJxoDpw; APISID=K7uo5aFfaImZbah0/ADYr6UM20XzFXUk7l; SAPISID=LpIBiJXOuwW8DjOE/A2KUyWzEVjWm3NAqa; NID=106=mSTp-MezH0hmbfallj76Zgmb5xxcTrWbWn1osUHpe0B0kyQLoFmVvd06aHjOd4RDz6QdgtRiMGftFOeUZkzrxEH5myP5L1FI1PXZFArFi3BXnMb1AZ31Ru3ofLQOMAr4-dJSz2gkyC3NLhzt7__TFJwFq0hKNGOFpZ-lDs7v0zcdzWMKV1AOh0UnQS-EGFhKiF9iW3wD1q8Zy9DtaXHEtB0g28u3MDVPgmEtvDs; DV=8waJBx4lumhE8NhO80xwP7SmDOeszxUK11PkT-n4TwMAAIBigLq4IEiT5QAAACzcz0qOoQyPVQAAAA',
@@ -60,13 +51,13 @@ module.exports = function () {
                 }).get();
 
                 var random = result[Math.floor(result.length * Math.random())];
-                if (random === undefined || random['url'] === undefined) {
+                if (!random || !random['url']) {
                     ctx.reply("Я не нашел ничего подходящего.");
                 } else {
                     ctx.replyWithPhoto(random['url'], {
-                        caption: 'Вот что я нашел',
+                        caption: 'Я думаю что это "' + stem + '"',
                         parse_mode: 'Markdown'
-                    })
+                    });
                 }
 
                 return resolve();

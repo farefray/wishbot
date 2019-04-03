@@ -1,8 +1,10 @@
 
+require('./string');
+
 const glob = require('glob'),
     path = require('path');
 
-let commandModules = []
+let commandModules = [],
     textModules = {};
 
 glob.sync('./modules/commands/*.js').forEach(function (file) {
@@ -17,7 +19,6 @@ glob.sync('./modules/text/*.js').forEach(function (file) {
 var modules = {
     commandModules: commandModules,
     textModules: textModules
-}
+};
 
-console.log(modules);
 module.exports = modules;

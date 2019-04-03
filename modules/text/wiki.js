@@ -1,7 +1,8 @@
 const cheerio = require("cheerio");
 const fetch = require('node-fetch');
-const natural = require('natural');
-const htmlToText = require('html-to-text');
+const NaturalHelper = require('../helpers/natural');
+const AzHelper = require('../helpers/az');
+const MIN_REPLY_LENGTH = 10;
 
 module.exports = function () {
     this.moduleName = "wiki";
@@ -13,43 +14,44 @@ module.exports = function () {
     this.run = function (ctx, moduleConf) {
         return new Promise((resolve) => {
             // lets find what we gonna search
-            const ourPhrase = moduleConf.highestPhrase;
-            let usersInput = moduleConf.usersInput;
-            let distancedMessage = natural.LevenshteinDistance(ourPhrase, usersInput, {search: true});
-            if (distancedMessage.substring) {
-                usersInput = usersInput.replace(distancedMessage.substring, "");
-            }
-
-            usersInput = usersInput.trim();
-            console.log('Wiki for ' + usersInput);
-
-            fetch("https://ru.wikipedia.org/wiki/Special:Search?search=" + encodeURIComponent(usersInput) + "&go=Go", {"credentials":"include","headers":{"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3","accept-language":"ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7","upgrade-insecure-requests":"1"},"referrer":"https://www.wikipedia.org/","referrerPolicy":"no-referrer-when-downgrade","body":null,"method":"GET","mode":"cors"})
-            .then(res => {
-                console.log(res);
-                return res.text();
-            })
+            const stem = NaturalHelper.extractStem(moduleConf.usersInput, moduleConf.highestPhrase);
+            const azProcessed = AzHelper.normalize(stem);
+            console.log('Wiki for ' + azProcessed);
+            fetch("https://ru.wikipedia.org/wiki/Special:Search?search=" + encodeURIComponent(azProcessed) + "&go=Go", {"credentials":"include","headers":{"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3","accept-language":"ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7","upgrade-insecure-requests":"1"},"referrer":"https://www.wikipedia.org/","referrerPolicy":"no-referrer-when-downgrade","body":null,"method":"GET","mode":"cors"})
+            .then(res => res.text())
             .then(body => {
                 const $ = cheerio.load(body, { decodeEntities: false });
                 const info = $('.mw-parser-output > p');
-                if (info.length > 0) {
-                    let responseText = $(info[0]).html();
-                    ctx.replyWithHTML(htmlToText.fromString(responseText, {
-                        wordwrap: false,
-                        ignoreHref: true,
-                        format: {
-                            heading: function (elem, fn, options) {
-                                return '<b>' + fn(elem.children, options) + '</b>';
-                            }
-                        }
-                    }));
+                let responseText = '';
+                if (info.length === 1) {
+                    // probably not clear statement. Has ul inside with possible variants
+                    const possibleVariants = $('.mw-parser-output > ul');
+                    if (possibleVariants.length > 0) {
+                        responseText = $(info[0]).html();
+                        responseText += '</br>';
+                        responseText += $(possibleVariants[0]).html().replace('<ul>', '<ol>').replace('</ul>', '</ol>');
+                        responseText = responseText.toMessage();
+                    }
+                } else if (info.length > 0) {
+                    responseText = $(info[0]).html().toMessage();
+
+                    if (responseText.length <= MIN_REPLY_LENGTH && !!info[1]) {
+                        responseText = $(info[1]).html().toMessage();
+                    }
                 }
+
+                if (responseText.length) {
+                    return ctx.replyWithHTML(responseText);
+                }
+
+                ctx.reply('Я ничего об этом не знаю');
             }).
             catch(e => {
                 const error = e;
                 ctx.reply('К сожалению, в ходе выполнения операции произошла ошибка.');
             });
         });
-    }
+    };
 
     return this;
-}
+};
