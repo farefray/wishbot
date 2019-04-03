@@ -7,13 +7,17 @@
   "license": "MIT",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "cross-env bot_token=705356992:AAFTpdMUtT0xsyUSU7B9PpTkvAJM6N8RKjU nodemon index.js",
+    "debug": "cross-env bot_token=705356992:AAFTpdMUtT0xsyUSU7B9PpTkvAJM6N8RKjU node --inspect index.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
+    "cross-env": "^5.2.0",
     "dotenv": "^6.2.0",
     "glob": "^7.1.3",
+    "html-to-text": "^5.0.0",
     "natural": "^0.6.3",
+    "node-fetch": "^2.3.0",
     "request": "^2.88.0",
     "telegraf": "^3.25.5"
   },

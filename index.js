@@ -1,4 +1,5 @@
 require('dotenv').config()
+
 const fs = require('fs');
 const Telegraf = require('telegraf');
 const app = require('./app').getInstance();
@@ -21,13 +22,18 @@ bot.use(session());
 
 bot.use((ctx, next) => {
     console.log('Message from user', ctx.chat.username, 'recieved:', ctx.message.text)
+
+    if (!ctx.message.text) {
+        return next(ctx);
+    }
+
     if (ctx.message.text == '/wipe') {
         ctx.session = {}
         return ctx.reply('session wiped').then(() => next(ctx))
     }
 
     let appealResult = app.getAppeal(ctx.message.text);
-    if (appealResult.is) {
+    if (ctx.chat.type === 'private' || appealResult.is) {
         let appResult = app.ai(ctx.message.text.replace(appealResult.appeal, ''));
         if (appResult.moduleName) {
             app.process(appResult, ctx).then(() => {
