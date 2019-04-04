@@ -9,7 +9,7 @@ NaturalHelper.extractStem = function (originalInput, noSencePart) {
         stem = originalInput.replace(distancedMessage.substring, "");
     }
 
-    return stem.trim();
+    return natural.PorterStemmerRu.stem(stem.trim());
 };
 
 module.exports = NaturalHelper;

@@ -40,6 +40,8 @@ var App = /** @class */ (function () {
         return appealResult;
     };
 
+    const MIN_SCORE_FOR_MODULE = 0.65;
+
     App.prototype.ai = function (input) {
         var tokenizer = new natural.WordTokenizer();
         input = tokenizer.tokenize(input).join(' ').trim();
@@ -53,7 +55,7 @@ var App = /** @class */ (function () {
                 for (let phraseIndex in languageModule.phrases) {
                     let modulePhrase = languageModule.phrases[phraseIndex];
                     let distance = natural.JaroWinklerDistance(modulePhrase, input);
-                    if (distance > highestScore) {
+                    if (distance > MIN_SCORE_FOR_MODULE && distance > highestScore) {
                         highestScore = distance;
                         highestModule = languageModule.moduleName;
                         highestPhrase = modulePhrase;
